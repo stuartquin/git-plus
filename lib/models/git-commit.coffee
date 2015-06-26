@@ -123,12 +123,10 @@ class GitCommit
           new GitPush(@repo)
         @isAmending = false
         @destroyActiveEditorView()
-        # Activate the former active pane.
         @currentPane.activate() if @currentPane.alive
         git.refresh()
 
       stderr: (err) =>
-        # Destroying the active EditorView will trigger our cleanup method.
         @destroyActiveEditorView()
 
   # Public: Destroys the active EditorView to trigger our cleanup method.

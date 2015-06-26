@@ -1,3 +1,5 @@
+fs = require 'fs-plus'
+Path = require 'path'
 {BufferedProcess, GitRepository} = require 'atom'
 RepoListView = require './views/repo-list-view'
 notifier = require './notifier'
@@ -26,6 +28,7 @@ gitCmd = ({args, cwd, options, stdout, stderr, exit}={}) ->
     exit = (exit) ->
       c_stdout @save ?= ''
       @save = null
+      deleteIndexLock(cwd) if cwd
 
   try
     new BufferedProcess
@@ -37,6 +40,10 @@ gitCmd = ({args, cwd, options, stdout, stderr, exit}={}) ->
       exit: exit
   catch error
     notifier.addError 'Git Plus is unable to locate git command. Please ensure process.env.PATH can access git.'
+
+deleteIndexLock = (workingDirectory) ->
+  repo = atom.project.getRepositories().filter((r) -> r.getWorkingDirectory() is workingDirectory)[0]
+  fs.unlink Path.join(repo.getPath(), 'index.lock'), (e) -> # whatevs
 
 gitStatus = (repo, stdout) ->
   gitCmd
