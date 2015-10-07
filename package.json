@@ -49,6 +49,14 @@
       "git-plus:merge"
     ]
   },
+  "providedServices": {
+    "git-plus": {
+      "description": "Do git things",
+      "versions": {
+        "1.0.0": "exposeGitPlus"
+      }
+    }
+  },
   "consumedServices": {
     "status-bar": {
       "versions": {

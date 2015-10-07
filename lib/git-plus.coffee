@@ -123,6 +123,8 @@ module.exports =
     @statusBarTile?.destroy()
     delete @statusBarTile
 
+  exposeGitPlus: -> require './service'
+
   consumeStatusBar: (statusBar) ->
     div = document.createElement 'div'
     div.classList.add 'inline-block'
