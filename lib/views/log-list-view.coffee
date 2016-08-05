@@ -30,8 +30,12 @@ class LogListView extends View
     @on 'click', '#show-more', loadMore
     @scroll(loadMore)
 
+  rewordCommit: ->
+    debugger
+
   attached: ->
     @commandSubscription = atom.commands.add @element,
+      'git-plus:commit-reword': => @rewordCommit()
       'core:move-down': => @selectNextResult()
       'core:move-up': => @selectPreviousResult()
       'core:page-up': => @selectPreviousResult(10)
