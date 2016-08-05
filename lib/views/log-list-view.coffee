@@ -26,8 +26,12 @@ class LogListView extends View
       @getLog() if @prop('scrollHeight') - @scrollTop() - @height() < 20
     , 50))
 
+  rewordCommit: ->
+    debugger
+
   attached: ->
     @commandSubscription = atom.commands.add @element,
+      'git-plus:commit-reword': => @rewordCommit()
       'core:move-down': => @selectNextResult()
       'core:move-up': => @selectPreviousResult()
       'core:page-up': => @selectPreviousResult(10)
