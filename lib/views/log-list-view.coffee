@@ -30,12 +30,18 @@ class LogListView extends View
     @on 'click', '#show-more', loadMore
     @scroll(loadMore)
 
-  rewordCommit: ->
-    debugger
+  rewordCommit: (event) ->
+    hash = event.target.parentElement.getAttribute('hash')
+    console.log(hash)
+
+    # Work out number of commits to go back
+    # git reset --hard HEAD~number
+    # git commit --amend -m '....'
+    # git cherry-pick [all the other commits]
 
   attached: ->
     @commandSubscription = atom.commands.add @element,
-      'git-plus:commit-reword': => @rewordCommit()
+      'git-plus:commit-reword': (event) => @rewordCommit(event)
       'core:move-down': => @selectNextResult()
       'core:move-up': => @selectPreviousResult()
       'core:page-up': => @selectPreviousResult(10)

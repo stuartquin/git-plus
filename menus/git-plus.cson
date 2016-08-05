@@ -94,6 +94,10 @@
           'label': 'Run'
           'command': 'git-plus:run'
         },
+        {
+          'label': 'Rebase Interactive'
+          'command': 'git-plus:rebase-interactive'
+        }
       ]
     ]
   }

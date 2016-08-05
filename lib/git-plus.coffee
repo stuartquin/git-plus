@@ -35,6 +35,7 @@ GitPullContext         = require './models/context/git-pull-context'
 GitPush                = require './models/git-push'
 GitPushContext         = require './models/context/git-push-context'
 GitRemove              = require './models/git-remove'
+GitRebaseInteractive   = require './models/git-rebase-interactive'
 GitShow                = require './models/git-show'
 GitStageFiles          = require './models/git-stage-files'
 GitStageFilesBeta      = require './models/git-stage-files-beta'
@@ -175,6 +176,7 @@ module.exports =
       @subscriptions.add atom.commands.add '.tree-view', 'git-plus-context:unstage-file', -> GitUnstageFileContext()
       @subscriptions.add atom.config.observe 'git-plus.diffs.syntaxHighlighting', setDiffGrammar
       @subscriptions.add atom.config.observe 'git-plus.diffs.wordDiff', setDiffGrammar
+      @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:rebase-interactive', -> git.getRepo().then((repo) -> GitRebaseInteractive(repo, showSelector: true))
       if atom.config.get('git-plus.experimental.stageFilesBeta')
         @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:stage-files', -> git.getRepo().then(GitStageFilesBeta)
       else

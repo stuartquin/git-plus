@@ -37,6 +37,7 @@ getCommands = ->
   GitRun                 = require './models/git-run'
   GitMerge               = require './models/git-merge'
   GitRebase              = require './models/git-rebase'
+  GitRebaseInteractive   = require './models/git-rebase-interactive'
   GitOpenChangedFiles    = require './models/git-open-changed-files'
 
   commands = []
@@ -103,6 +104,7 @@ getCommands = ->
       commands.push ['git-plus:merge-remote', 'Merge Remote', -> GitMerge(repo, remote: true)]
       commands.push ['git-plus:merge-no-fast-forward', 'Merge without fast-forward', -> GitMerge(repo, noFastForward: true)]
       commands.push ['git-plus:rebase', 'Rebase', -> GitRebase(repo)]
+      commands.push ['git-plus:rebase-interactive', 'Rebase Interactive', -> GitRebaseInteractive(repo)]
       commands.push ['git-plus:git-open-changed-files', 'Open Changed Files', -> GitOpenChangedFiles(repo)]
 
       return commands
