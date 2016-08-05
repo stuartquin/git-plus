@@ -73,6 +73,10 @@
           'label': 'Rebase'
           'command': 'git-plus:rebase'
         }
+        {
+          'label': 'Rebase Interactive'
+          'command': 'git-plus:rebase-interactive'
+        }
       ]
     ]
   }

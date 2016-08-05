@@ -54,6 +54,7 @@
       "git-plus:merge",
       "git-plus:merge-remote",
       "git-plus:rebase",
+      "git-plus:rebase-interactive",
       "git-plus:open-changed-files"
     ]
   },
