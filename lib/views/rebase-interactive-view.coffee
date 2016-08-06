@@ -12,7 +12,7 @@ class RebaseInteractiveView extends View
   @content: ->
     @div class: 'git-plus-rebase-interactive', tabindex: -1, =>
       @table id: 'git-plus-commits', outlet: 'commitsListView'
-      @div class: 'actions', =>
+      @div class: 'rebase-actions', =>
         @button class: 'btn btn-success apply-rebase', 'Apply Rebase'
 
   getURI: -> 'atom://git-plus:rebase-interactive'
@@ -38,8 +38,11 @@ class RebaseInteractiveView extends View
       @dragDrop(event)
     @on 'dragend', '.rebase-interactive-row', (event) =>
       @dragEnd(event)
+
     @on 'click', '.apply-rebase', (event) =>
       @applyRebase(event)
+    @on 'click', '.skip-commit', (event) =>
+      @skipCommit(event)
 
   dragStart: (event) ->
     element = event.currentTarget
@@ -91,6 +94,13 @@ class RebaseInteractiveView extends View
       el.style.opacity = 1.0
       el.classList.remove('drag-over')
 
+  skipCommit: (event) ->
+    element = event.currentTarget
+    hash = element.getAttribute('hash')
+    console.log(hash)
+    @commits[hash].skipped = !@commits[hash].skipped
+    @renderLog()
+
   getLog: ->
     workingDir = '/home/stuart/Desktop/toygit/'
     repoPath = "#{workingDir}.git/"
@@ -102,27 +112,25 @@ class RebaseInteractiveView extends View
     git.cmd(args, cwd: workingDir)
 
   rebaseView: (repo) ->
+    @repo = repo
     @getLog().then((data) =>
       @parseData(data)
     ).catch((err)->
       debugger
     )
 
-  renderHeader: ->
-    headerRow = $$$ ->
-      @tr class: 'commit-header', =>
-        @td 'Date'
-        @td 'Message'
-        @td class: 'hashShort', 'Short Hash'
-
-    @commitsListView.append(headerRow)
-
   renderCommit: (commit, index) ->
+    classes = 'rebase-interactive-row'
+    if commit.skipped
+      classes += ' skipped'
+
     commitRow = $$$ ->
-      @tr index: index, class: 'rebase-interactive-row', draggable: true, hash: "#{commit.hash}", =>
+      @tr index: index, class: classes, draggable: true, hash: "#{commit.hash}", =>
         @td class: 'message', "#{commit.message} (#{commit.hashShort})"
         @td class: 'actions', =>
-          @span class: 'icon icon-pencil'
+          @button class: 'icon icon-pencil', title: 'Reword', hash: "#{commit.hash}"
+          @button class: 'icon icon-trashcan skip-commit', title: 'Skip', hash: "#{commit.hash}"
+          @button class: 'icon icon-arrow-up', title: 'Fix-up', hash: "#{commit.hash}"
 
     @commitsListView.append(commitRow)
 
@@ -132,11 +140,24 @@ class RebaseInteractiveView extends View
     @skipCommits += @numberOfCommitsToShow
 
   applyRebase: () ->
-    fromIndex = @originalOrder.findIndex((hash, idx) =>
+    indexes = []
+    indexes.push(@originalOrder.findIndex((hash, idx) =>
       return hash != @commitOrder[idx]
-    )
+    ))
+    indexes.push(@originalOrder.findIndex((hash) =>
+      return @commits[hash].skipped == true
+    ))
+
+    fromIndex = indexes.sort().find((i) -> i > -1)
+    if fromIndex is undefined
+      return
+
+    console.log(fromIndex, indexes)
+
     rebaseFrom = @commitOrder.length - fromIndex
-    rebaseCommits = @commitOrder.slice(fromIndex)
+    rebaseCommits = @commitOrder.slice(fromIndex).filter((hash) =>
+      return @commits[hash].skipped != true
+    )
     # git checkout rebaseFrom
     # git checkout HEAD^
 
@@ -144,13 +165,6 @@ class RebaseInteractiveView extends View
     repoPath = "#{workingDir}.git/"
     # repoPath = repo.getPath()
     # workingDir = repo.getWorkingDirectory()
-    # reorderOps = rebaseCommits.map((hash) -> git.cmd(['cherry-pick', hash], cwd: workingDir))
-
-    console.log("git reset --hard HEAD~#{rebaseFrom}")
-    rebaseCommits.forEach (hash) ->
-      console.log("git cherry-pick #{hash}")
-    debugger
-
 
     git.cmd(['reset', '--hard', "HEAD~#{rebaseFrom}"], cwd: workingDir).then(() =>
       rebaseCommits.reduce((cur, hash) ->
@@ -158,7 +172,7 @@ class RebaseInteractiveView extends View
           git.cmd(['cherry-pick', hash], cwd: workingDir)
       , Promise.resolve())
     ).then(() =>
-      console.log('success')
+      @rebaseView(@repo)
     )
 
   parseData: (data) ->
@@ -171,7 +185,7 @@ class RebaseInteractiveView extends View
     data = data.substring(0, data.length - newline.length - 1)
 
     @commits = {}
-    data.split(newline).reverse().forEach((line) =>
+    data.split(newline).reverse().forEach((line, index) =>
       if line.trim() isnt ''
         tmpData = line.trim().split(separator)
         @commits[tmpData[1]] = {
@@ -181,6 +195,7 @@ class RebaseInteractiveView extends View
           email: tmpData[3]
           message: tmpData[4]
           date: tmpData[5]
+          originalIndex: index
         }
     )
 
