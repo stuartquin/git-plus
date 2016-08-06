@@ -83,8 +83,35 @@ atom-text-editor::shadow {
 }
 
 .git-plus-rebase-interactive {
+    padding-left: 10%;
+    padding-right: 10%;
+
     .drag-over {
         border: dashed 1px;
     }
 
+    table {
+      width: 100%;
+    }
+
+    .rebase-interactive-row {
+        &:hover {
+            background-color: #CCCCCC;
+        }
+
+        &.skipped {
+          opacity: 0.8;
+          .message {
+            text-decoration: line-through;
+          }
+        }
+
+        td {
+          padding: 6px;
+        }
+
+        .actions {
+          text-align: right;
+        }
+    }
 }
