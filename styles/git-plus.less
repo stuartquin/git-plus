@@ -94,6 +94,16 @@ atom-text-editor::shadow {
       width: 100%;
     }
 
+    .rebase-actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-end;
+
+      button {
+        margin-left: 10px;
+      }
+    }
+
     .rebase-interactive-row {
         height: 30px;
         &:hover {
@@ -107,6 +117,12 @@ atom-text-editor::shadow {
 
           span {
             margin-left: -5px;
+          }
+        }
+
+        &.moved {
+          .branch {
+            color: blue;
           }
         }
 
