@@ -42,7 +42,11 @@ class RebaseInteractiveView extends View
     @on 'click', '.apply-rebase', (event) =>
       @applyRebase(event)
     @on 'click', '.skip-commit', (event) =>
-      @skipCommit(event)
+      @handleSkip(event)
+    @on 'click', '.fixup-commit', (event) =>
+      @handleFixup(event)
+    @on 'click', '.reword-commit', (event) =>
+      @handleReword(event)
 
   dragStart: (event) ->
     element = event.currentTarget
@@ -94,11 +98,22 @@ class RebaseInteractiveView extends View
       el.style.opacity = 1.0
       el.classList.remove('drag-over')
 
-  skipCommit: (event) ->
+  handleSkip: (event) ->
     element = event.currentTarget
     hash = element.getAttribute('hash')
-    console.log(hash)
     @commits[hash].skipped = !@commits[hash].skipped
+    @renderLog()
+
+  handleFixup: (event) ->
+    element = event.currentTarget
+    hash = element.getAttribute('hash')
+    @commits[hash].fixup = !@commits[hash].fixup
+    @renderLog()
+
+  handleReword: (event) ->
+    element = event.currentTarget
+    hash = element.getAttribute('hash')
+    @commits[hash].reword = true
     @renderLog()
 
   getLog: ->
@@ -128,9 +143,9 @@ class RebaseInteractiveView extends View
       @tr index: index, class: classes, draggable: true, hash: "#{commit.hash}", =>
         @td class: 'message', "#{commit.message} (#{commit.hashShort})"
         @td class: 'actions', =>
-          @button class: 'icon icon-pencil', title: 'Reword', hash: "#{commit.hash}"
+          @button class: 'icon icon-pencil reword-commit', title: 'Reword', hash: "#{commit.hash}"
           @button class: 'icon icon-trashcan skip-commit', title: 'Skip', hash: "#{commit.hash}"
-          @button class: 'icon icon-arrow-up', title: 'Fix-up', hash: "#{commit.hash}"
+          @button class: 'icon icon-arrow-up fixup-commit', title: 'Fix-up', hash: "#{commit.hash}"
 
     @commitsListView.append(commitRow)
 
@@ -152,14 +167,12 @@ class RebaseInteractiveView extends View
     if fromIndex is undefined
       return
 
-    console.log(fromIndex, indexes)
-
     rebaseFrom = @commitOrder.length - fromIndex
+
+    # Skip Commits
     rebaseCommits = @commitOrder.slice(fromIndex).filter((hash) =>
       return @commits[hash].skipped != true
-    )
-    # git checkout rebaseFrom
-    # git checkout HEAD^
+    ).map((hash) => @commits[hash])
 
     workingDir = '/home/stuart/Desktop/toygit/'
     repoPath = "#{workingDir}.git/"
@@ -167,13 +180,43 @@ class RebaseInteractiveView extends View
     # workingDir = repo.getWorkingDirectory()
 
     git.cmd(['reset', '--hard', "HEAD~#{rebaseFrom}"], cwd: workingDir).then(() =>
-      rebaseCommits.reduce((cur, hash) ->
-        cur.then () ->
-          git.cmd(['cherry-pick', hash], cwd: workingDir)
-      , Promise.resolve())
+      @applyCommits(rebaseCommits, workingDir)
     ).then(() =>
       @rebaseView(@repo)
     )
+
+  applyCommits: (rebaseCommits, workingDir) ->
+    rebaseCommits.reduce((cur, commit) =>
+      hash = commit.hash
+      cur.then(() =>
+        git.cmd(['cherry-pick', hash], cwd: workingDir).then(() =>
+          @fixupCommit(commit, workingDir)
+        )
+      )
+    , Promise.resolve())
+
+  fixupCommit: (commit, workingDir) ->
+    if commit.fixup
+      sequence = [
+        ['reset', '--hard', 'HEAD^'],
+        ['merge', '--squash', commit.hash],
+        ['add', '.'],
+        ['add', '--update'],
+        ['commit', '--amend', '--no-edit'],
+      ]
+      @applyGitSequence(sequence, workingDir)
+    else
+      Promise.resolve()
+
+  applyGitSequence: (sequence, workingDir) ->
+    sequence.reduce((cur, cmd) ->
+      cur.then () ->
+        git.cmd(cmd, cwd: workingDir)
+    , Promise.resolve())
+
+  rewordCommit: (hash, workingDir) ->
+    # git commit --amend --file /tmp/git-plus-reword-hash.txt
+    return
 
   parseData: (data) ->
     if data.length < 1
