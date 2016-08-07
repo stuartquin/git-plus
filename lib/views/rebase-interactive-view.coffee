@@ -14,6 +14,7 @@ class RebaseInteractiveView extends View
       @table id: 'git-plus-commits', outlet: 'commitsListView'
       @div class: 'rebase-actions', =>
         @button class: 'btn btn-success apply-rebase', 'Apply Rebase'
+        @button class: 'btn btn-default reset-rebase', 'Reset'
 
   getURI: -> 'atom://git-plus:rebase-interactive'
 
@@ -41,6 +42,8 @@ class RebaseInteractiveView extends View
 
     @on 'click', '.apply-rebase', (event) =>
       @applyRebase(event)
+    @on 'click', '.reset-rebase', (event) =>
+      @reset(event)
     @on 'click', '.skip-commit', (event) =>
       @handleSkip(event)
     @on 'click', '.fixup-commit', (event) =>
@@ -60,7 +63,6 @@ class RebaseInteractiveView extends View
   dragOver: (event) ->
     element = event.currentTarget
     event.preventDefault()
-    console.log(event)
     event.originalEvent.dataTransfer.dropEffect = 'move'
     return false
 
@@ -79,11 +81,11 @@ class RebaseInteractiveView extends View
     targetIndex = parseInt(element.getAttribute('index'))
 
     commitOrder = []
-    @commitOrder.forEach((hash, index) ->
+    @commitOrder.forEach((hash, index) =>
       droppedHash = origEvent.dataTransfer.getData('text/plain')
-      console.log('INDEX', index, targetIndex)
       if index == targetIndex
         commitOrder.push(droppedHash)
+        @commits[droppedHash].moved = true
 
       if hash != droppedHash
         commitOrder.push(hash)
@@ -116,6 +118,9 @@ class RebaseInteractiveView extends View
     @commits[hash].reword = true
     @renderLog()
 
+  reset: (event) ->
+    @rebaseView(@repo)
+
   getLog: ->
     workingDir = '/home/stuart/Desktop/toygit/'
     repoPath = "#{workingDir}.git/"
@@ -137,6 +142,9 @@ class RebaseInteractiveView extends View
   renderCommit: (commit, index) ->
     classes = 'rebase-interactive-row'
     branchClass = 'icon icon-primitive-dot'
+
+    if commit.moved
+      classes += ' moved'
 
     if commit.skipped
       classes += ' skipped'
@@ -207,11 +215,8 @@ class RebaseInteractiveView extends View
   fixupCommit: (commit, workingDir) ->
     if commit.fixup
       sequence = [
-        ['reset', '--hard', 'HEAD^'],
-        ['merge', '--squash', commit.hash],
-        ['add', '.'],
-        ['add', '--update'],
-        ['commit', '--amend', '--no-edit'],
+        ['reset', '--soft', 'HEAD^'],
+        ['commit', '--amend', '--no-edit']
       ]
       @applyGitSequence(sequence, workingDir)
     else
@@ -248,6 +253,9 @@ class RebaseInteractiveView extends View
           message: tmpData[4]
           date: tmpData[5]
           originalIndex: index
+          moved: false
+          skipped: false
+          fixup: false
         }
     )
 
