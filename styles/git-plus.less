@@ -95,8 +95,19 @@ atom-text-editor::shadow {
     }
 
     .rebase-interactive-row {
+        height: 30px;
         &:hover {
             background-color: #CCCCCC;
+        }
+
+        .branch {
+          border-left: solid  2px black;
+          width: 16px;
+          overflow-x: visible;
+
+          span {
+            margin-left: -5px;
+          }
         }
 
         &.skipped {
@@ -106,10 +117,20 @@ atom-text-editor::shadow {
           }
         }
 
-        td {
-          padding: 6px;
+        &.fixup {
+          opacity: 0.8;
+          .message {
+            padding-left: 0px;
+            padding-top: 0px;
+            font-style: italic;
+            opacity: 0.4;
+          }
+          .branch {
+            span {
+              margin-left: 5px;
+            }
+          }
         }
-
         .actions {
           text-align: right;
         }
