@@ -21,7 +21,7 @@ class RebaseInteractiveView extends View
 
   initialize: ->
     @finished = false
-    @numberOfCommitsToShow = 5
+    @numberOfCommitsToShow = 10
 
     @originalOrder = []
 
@@ -136,11 +136,20 @@ class RebaseInteractiveView extends View
 
   renderCommit: (commit, index) ->
     classes = 'rebase-interactive-row'
+    branchClass = 'icon icon-primitive-dot'
+
     if commit.skipped
       classes += ' skipped'
+      branchClass = ''
+
+    if commit.fixup
+      classes += ' fixup'
+      branchClass = ' icon icon-arrow-up'
 
     commitRow = $$$ ->
       @tr index: index, class: classes, draggable: true, hash: "#{commit.hash}", =>
+        @td class: 'branch', =>
+          @span class: branchClass
         @td class: 'message', "#{commit.message} (#{commit.hashShort})"
         @td class: 'actions', =>
           @button class: 'icon icon-pencil reword-commit', title: 'Reword', hash: "#{commit.hash}"
