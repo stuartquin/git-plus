@@ -122,10 +122,8 @@ class RebaseInteractiveView extends View
     @rebaseView(@repo)
 
   getLog: ->
-    workingDir = '/home/stuart/Desktop/toygit/'
-    repoPath = "#{workingDir}.git/"
-    # repoPath = repo.getPath()
-    # workingDir = repo.getWorkingDirectory()
+    repoPath = @repo.getPath()
+    workingDir = @repo.getWorkingDirectory()
 
     args = ['log', "--pretty=%h;|%H;|%aN;|%aE;|%s;|%ai_.;._", "-#{@numberOfCommitsToShow}"]
     args.push @currentFile if @onlyCurrentFile and @currentFile?
@@ -191,10 +189,8 @@ class RebaseInteractiveView extends View
       return @commits[hash].skipped != true
     ).map((hash) => @commits[hash])
 
-    workingDir = '/home/stuart/Desktop/toygit/'
-    repoPath = "#{workingDir}.git/"
-    # repoPath = repo.getPath()
-    # workingDir = repo.getWorkingDirectory()
+    repoPath = @repo.getPath()
+    workingDir = @repo.getWorkingDirectory()
 
     git.cmd(['reset', '--hard', "HEAD~#{rebaseFrom}"], cwd: workingDir).then(() =>
       @applyCommits(rebaseCommits, workingDir)

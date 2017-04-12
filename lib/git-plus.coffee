@@ -162,6 +162,7 @@ module.exports =
       @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:merge-remote', -> git.getRepo().then((repo) -> GitMerge(repo, remote: true))
       @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:merge-no-fast-forward', -> git.getRepo().then((repo) -> GitMerge(repo, noFastForward: true))
       @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:rebase', -> git.getRepo().then((repo) -> GitRebase(repo))
+      @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:rebase-interactive', -> git.getRepo().then((repo) -> GitRebaseInteractive(repo, showSelector: true))
       @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:git-open-changed-files', -> git.getRepo().then((repo) -> GitOpenChangedFiles(repo))
       @subscriptions.add atom.commands.add '.tree-view', 'git-plus-context:add', -> GitAddContext()
       @subscriptions.add atom.commands.add '.tree-view', 'git-plus-context:add-and-commit', -> GitAddAndCommitContext()
@@ -176,7 +177,6 @@ module.exports =
       @subscriptions.add atom.commands.add '.tree-view', 'git-plus-context:unstage-file', -> GitUnstageFileContext()
       @subscriptions.add atom.config.observe 'git-plus.diffs.syntaxHighlighting', setDiffGrammar
       @subscriptions.add atom.config.observe 'git-plus.diffs.wordDiff', setDiffGrammar
-      @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:rebase-interactive', -> git.getRepo().then((repo) -> GitRebaseInteractive(repo, showSelector: true))
       if atom.config.get('git-plus.experimental.stageFilesBeta')
         @subscriptions.add atom.commands.add 'atom-workspace', 'git-plus:stage-files', -> git.getRepo().then(GitStageFilesBeta)
       else
